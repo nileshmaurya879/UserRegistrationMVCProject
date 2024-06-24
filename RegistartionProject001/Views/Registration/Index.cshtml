@@ -1,0 +1,183 @@
+﻿@model IEnumerable<RegistartionProject001.Models.sp_getUserRegistration>
+
+<script src="/lib/jquery/dist/jquery.js"></script>
+<script src="/lib/jquery/dist/ValidationCall.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table-striped" id="userTable">
+                <tr>
+                    <th>UserRegistrationId</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>StateName</th>
+                    <th>City</th>
+                    <th>Action</th>
+                </tr>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <th>@item.UserRegistrationId</th>
+                        <th>@item.Name</th>
+                        <th>@item.Email</th>
+                        <th>@item.Phone</th>
+                        <th>@item.Address</th>
+                        <th>@item.StateName</th>
+                        <th>@item.CityName</th>
+                        <th style="width:fit-content;white-space: nowrap;">
+                            <button class="btn btn-primary btn-update" id="btnupdate" data-id="@item.UserRegistrationId">Update</button>
+                            <button class="btn btn-danger btn-delete" data-id="@item.UserRegistrationId" style="padding: 10px 20px;">
+                                    Delete
+                                </button>
+                           </th>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <button class="btn btn-primary" id="btnopenModel">Add</button>
+</div>
+
+<div class="modal fade" id="mainmodal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Registration</h3>
+            </div>
+            <form id="myform">
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input class="form-control" id="txtid" type="number" hidden/>
+                            <input class="form-control" id="txtname" type="text" placeholder="Enter the name"/>
+                            <span id="lblname" style="color:red"></span>
+                            <br />
+                            <input class="form-control" type="email" id="txtemail" placeholder="Enter the email" />
+                            <span id="lblemail" style="color:red"></span>
+                            <br />
+                            <input class="form-control" type="number" id="txtphone" placeholder="Enter the phone number"/>
+                            <span id="lblphone" style="color:red"></span>
+                            <br />
+                                <select class="form-control" id="selectState" asp-items="ViewBag.stattes">
+                                <option value="0">Select State</option>
+                            </select>
+                            <span id="lblstate" style="color:red"></span>
+                            <br />
+                            <select class="form-control" id="cityDropdown" asp-items="ViewBag.city">
+                                <option value="0">Select City</option>
+                            </select>
+                            <span id="lblcity" style="color:red"></span>
+                            <br />
+                            <textarea class="form-control" id="txtaddress" placeholder="Enter the address">
+
+                            </textarea>
+                            <br />
+                            <div class="row">
+                                <div class="col">
+                                    <input type="checkbox" id="chkbox" />
+                                    <label>Agree?</label>
+                                        <span id="lblagree" style="color:red"></span>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col">
+                            <button class="btn btn-primary" type="submit" id="btnupdate001">Update</button>
+                            <button class="btn btn-primary" type="submit" id="btnadd">Add</button>
+                            <button class="btn btn-danger" id="btnclose">Close</button>
+                    </div>
+              </div>
+            </div>
+        </div>
+       </form>
+    </div>
+    </div>
+</div>
+
+
+<script>
+    //update
+    $('#userTable').on('click', '.btn-update', function (event) {
+        event.preventDefault();
+        var userId = $(this).data('id');
+        btnclick(userId);
+    });
+
+    //delete
+    $('#userTable').on('click', '.btn-delete', function (event) {
+        event.preventDefault();
+        var userId = $(this).data('id');
+        var userConfirmed = confirm("Are you sure you want to delete this item?");
+        if (userConfirmed){
+            $.ajax({
+                type: "DELETE",
+                url: "@Url.Action("DeleteRegistration","Registration")",
+                dataType: 'text',
+                data: {
+                    id: userId
+                },
+                success: function () {
+                    location.reload();
+                }
+            })
+        }
+    });s
+    function btnclick(id){
+        event.preventDefault();
+        $('#btnadd').hide();
+        $('#btnupdate001').show();
+        $.ajax({
+            type:'GET',
+            url: '@Url.Action("GetUserRegistrationById","Registration")',
+            data:{
+                "id":id
+            },
+            dataType:'json',
+            success:function(data){
+                $('#mainmodal').modal('show');
+                var dropdown = $('#selectState');
+                dropdown.empty().append('<option value="0">Select State cvvv</option>');
+
+                $.ajax({
+                    url: '@Url.Action("GetStates","Registration")',
+                    type: "GET",
+                    data: data,
+                    dataType: 'json',
+                    success: function (response) {
+                        $.each(response, function (index, state) {
+                            dropdown.append('<option value="' + state.id + '">' + state.stateName + '</option>');
+                            dropdown.val(data.stateId);
+                        });
+                        $.ajax({
+                            type: 'GET',
+                            url: 'https://localhost:44397/Registration/GetCityByStatus/' + data.stateId,
+                            datatype: 'text',
+                            success: function (mess) {
+                                var dropdown = $('#cityDropdown')
+                                dropdown.empty();
+                                dropdown.append('<option value="0">Select city</option>')
+                                $.each(mess, function (index, city) {
+                                    dropdown.append('<option value="' + city.id + '">' + city.cityName + '</option>');
+                                    dropdown.val(data.cityId)
+                                })
+                            }
+                        })
+                    },
+                });
+                $('#txtname').val(data.name),
+                $('#txtemail').val(data.email),
+                $('#txtphone').val(data.phone),
+                $('#txtaddress').val(data.address)
+                $('#txtid').val(data.userRegistrationId)
+            }
+        })
+    }
+</script>
