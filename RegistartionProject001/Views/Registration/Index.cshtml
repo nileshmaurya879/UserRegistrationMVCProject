@@ -144,7 +144,7 @@
             success:function(data){
                 $('#mainmodal').modal('show');
                 var dropdown = $('#selectState');
-                dropdown.empty().append('<option value="0">Select State cvvv</option>');
+                dropdown.empty().append('<option value="0">Select State</option>');
 
                 $.ajax({
                     url: '@Url.Action("GetStates","Registration")',

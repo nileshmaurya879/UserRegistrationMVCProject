@@ -52,7 +52,7 @@
         //checkbox
         if (!$('#chkbox').is(':checked')) {
             isvalid = false;
-            $('#lblagree').text('Please Agrre before submit')
+            $('#lblagree').text('Please Agree before submit')
         } else {
             $('#lblagree').text('');
         }
